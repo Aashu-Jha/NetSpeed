@@ -16,7 +16,26 @@ Requires macOS 13 or later.
 
 ## Install
 
-Build from source. You need the Xcode Command Line Tools (`xcode-select --install`):
+### Download
+
+1. Download `NetSpeed-vX.Y.Z.zip` from the [latest release](https://github.com/Aashu-Jha/NetSpeed/releases/latest). It is a universal app that runs on Apple silicon and Intel Macs.
+2. Unzip it and move `NetSpeed.app` to `/Applications`.
+3. Open it (see below for the first launch).
+
+**First launch and Gatekeeper:** NetSpeed is ad-hoc signed and not notarized by Apple, so macOS blocks it the first time with a warning that it "cannot be opened" or "cannot verify the developer". To allow it, use either option:
+
+- In Finder, right-click (or Control-click) `NetSpeed.app`, choose **Open**, then click **Open** in the dialog. On newer macOS versions, if there is no **Open** button, try to open the app once, then go to **System Settings → Privacy & Security** and click **Open Anyway**.
+- Or remove the quarantine flag in Terminal:
+
+  ```bash
+  xattr -dr com.apple.quarantine /Applications/NetSpeed.app
+  ```
+
+You only need to do this once. If you prefer not to bypass Gatekeeper, build from source instead.
+
+### Build from source
+
+You need the Xcode Command Line Tools (`xcode-select --install`):
 
 ```bash
 git clone https://github.com/Aashu-Jha/NetSpeed.git
@@ -26,7 +45,11 @@ cd NetSpeed
 
 This compiles `NetSpeed.app`, copies it to `/Applications` and launches it.
 
-To build without installing, run `./build.sh`. The app is written to `build/NetSpeed.app`.
+To build without installing, run `./build.sh`. The app is written to `build/NetSpeed.app`. Add `--universal` to build for both Apple silicon and Intel.
+
+## Releasing
+
+Push a version tag (for example `git tag v1.1.0 && git push origin v1.1.0`). The [Release workflow](.github/workflows/release.yml) builds a universal app, zips it and attaches it to a new GitHub release.
 
 ## How it works
 

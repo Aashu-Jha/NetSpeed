@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build universal app
+        run: VERSION="${GITHUB_REF_NAME#v}" ./build.sh --universal
+
+      - name: Verify architectures
+        run: |
+          for arch in arm64 x86_64; do
+            lipo build/NetSpeed.app/Contents/MacOS/NetSpeed -verify_arch "$arch"
+          done
+
+      - name: Zip app
+        # ditto keeps the bundle structure and code signature intact
+        run: ditto -c -k --keepParent build/NetSpeed.app "NetSpeed-${GITHUB_REF_NAME}.zip"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "NetSpeed-${GITHUB_REF_NAME}.zip" --title "NetSpeed $GITHUB_REF_NAME" --generate-notes
