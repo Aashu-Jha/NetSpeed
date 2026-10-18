@@ -56,16 +56,25 @@ final class NetCounter {
 // Two-line label drawn directly; no per-tick allocation beyond the strings.
 final class SpeedView: NSView {
     var up = "0 KB/s", down = "0 KB/s"
-    private let attrs: [NSAttributedString.Key: Any] = [
+    private static let attrs: [NSAttributedString.Key: Any] = [
         .font: NSFont.monospacedDigitSystemFont(ofSize: 9, weight: .medium),
     ]
+    private static let padding: CGFloat = 2
+
+    // Width of the widest string the label can show, plus padding on both sides, so the
+    // status item hugs the text instead of reserving a fixed, oversized slot.
+    static var fittedWidth: CGFloat {
+        let samples = ["↑ 000 KB/s", "↑ 0.0 MB/s", "↑ 000 MB/s", "↑ 0.0 GB/s"]
+        let w = samples.map { ($0 as NSString).size(withAttributes: attrs).width }.max() ?? 0
+        return ceil(w) + padding * 2
+    }
 
     override func draw(_ dirtyRect: NSRect) {
-        var a = attrs
+        var a = Self.attrs
         a[.foregroundColor] = NSColor.labelColor
         let h = bounds.height / 2
-        ("↑ " + up as NSString).draw(at: NSPoint(x: 2, y: h - 1), withAttributes: a)
-        ("↓ " + down as NSString).draw(at: NSPoint(x: 2, y: -1), withAttributes: a)
+        ("↑ " + up as NSString).draw(at: NSPoint(x: Self.padding, y: h - 1), withAttributes: a)
+        ("↓ " + down as NSString).draw(at: NSPoint(x: Self.padding, y: -1), withAttributes: a)
     }
 
     // Let clicks fall through to the status bar button.
@@ -73,7 +82,7 @@ final class SpeedView: NSView {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    private let item = NSStatusBar.system.statusItem(withLength: 64)
+    private let item = NSStatusBar.system.statusItem(withLength: SpeedView.fittedWidth)
     private let view = SpeedView()
     private let counter = NetCounter()
     private var lastTime: UInt64 = 0
